@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canvas Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+      text-align: center;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 800px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    canvas {
+      border: 1px solid #333;
+      display: block;
+      margin: 10px auto;
+      background: #fff;
+    }
+    button {
+      padding: 10px 16px;
+      margin: 5px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>&lt;canvas&gt; Demo</h1>
+
+  <!-- 1. Drawing Pad -->
+  <div class="section">
+    <h2>1) Drawing Pad</h2>
+    <canvas id="drawCanvas" width="500" height="300"></canvas><br>
+    <button onclick="clearDrawing()">Clear</button>
+  </div>
+
+  <!-- 2. Bouncing Ball -->
+  <div class="section">
+    <h2>2) Bouncing Ball Animation</h2>
+    <canvas id="ballCanvas" width="500" height="300"></canvas>
+  </div>
+
+  <!-- 3. Simple Game -->
+  <div class="section">
+    <h2>3) Simple Game: Catch the Box</h2>
+    <p>Use Left and Right arrow keys to catch the falling box.</p>
+    <canvas id="gameCanvas" width="500" height="300"></canvas>
+    <p>Score: <span id="score">0</span></p>
+  </div>
+
+  <script>
+    // =========================
+    // 1. Drawing Pad
+    // =========================
+    const drawCanvas = document.getElementById("drawCanvas");
+    const drawCtx = drawCanvas.getContext("2d");
+    let drawing = false;
+
+    drawCanvas.addEventListener("mousedown", () => drawing = true);
+    drawCanvas.addEventListener("mouseup", () => drawing = false);
+    drawCanvas.addEventListener("mouseout", () => drawing = false);
+
+    drawCanvas.addEventListener("mousemove", (e) => {
+      if (!drawing) return;
+      const rect = drawCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      drawCtx.fillStyle = "black";
+      drawCtx.beginPath();
+      drawCtx.arc(x, y, 3, 0, Math.PI * 2);
+      drawCtx.fill();
+    });
+
+    function clearDrawing() {
+      drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    }
+
+    // =========================
+    // 2. Bouncing Ball
+    // =========================
+    const ballCanvas = document.getElementById("ballCanvas");
+    const ballCtx = ballCanvas.getContext("2d");
+
+    let x = 50;
+    let y = 50;
+    let dx = 3;
+    let dy = 2;
+    const ballRadius = 20;
+
+    function animateBall() {
+      ballCtx.clearRect(0, 0, ballCanvas.width, ballCanvas.height);
+
+      ballCtx.beginPath();
+      ballCtx.arc(x, y, ballRadius, 0, Math.PI * 2);
+      ballCtx.fillStyle = "red";
+      ballCtx.fill();
+      ballCtx.closePath();
+
+      if (x + dx > ballCanvas.width - ballRadius || x + dx < ballRadius) {
+        dx = -dx;
+      }
+      if (y + dy > ballCanvas.height - ballRadius || y + dy < ballRadius) {
+        dy = -dy;
+      }
+
+      x += dx;
+      y += dy;
+
+      requestAnimationFrame(animateBall);
+    }
+    animateBall();
+
+    // =========================
+    // 3. Simple Game
+    // =========================
+    const gameCanvas = document.getElementById("gameCanvas");
+    const gameCtx = gameCanvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+
+    let playerX = 220;
+    const playerY = 270;
+    const playerWidth = 60;
+    const playerHeight = 15;
+
+    let boxX = Math.random() * 440;
+    let boxY = 0;
+    const boxSize = 20;
+    let score = 0;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") playerX -= 20;
+      if (e.key === "ArrowRight") playerX += 20;
+
+      if (playerX < 0) playerX = 0;
+      if (playerX > gameCanvas.width - playerWidth) {
+        playerX = gameCanvas.width - playerWidth;
+      }
+    });
+
+    function gameLoop() {
+      gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+      // Player
+      gameCtx.fillStyle = "blue";
+      gameCtx.fillRect(playerX, playerY, playerWidth, playerHeight);
+
+      // Falling box
+      gameCtx.fillStyle = "green";
+      gameCtx.fillRect(boxX, boxY, boxSize, boxSize);
+
+      boxY += 3;
+
+      // Collision
+      if (
+        boxY + boxSize >= playerY &&
+        boxX + boxSize >= playerX &&
+        boxX <= playerX + playerWidth
+      ) {
+        score++;
+        scoreEl.textContent = score;
+        boxX = Math.random() * 440;
+        boxY = 0;
+      }
+
+      // Missed box
+      if (boxY > gameCanvas.height) {
+        boxX = Math.random() * 440;
+        boxY = 0;
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+  </script>
+
+</body>
+</html>
